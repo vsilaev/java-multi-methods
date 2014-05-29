@@ -12,6 +12,7 @@
 
 	<modules>
 		<module>com.farata.lang.invoke.api</module>
+		<module>com.farata.lang.invoke.asm3</module>
 		<module>com.farata.lang.invoke.asm4</module>
 		<module>com.farata.lang.invoke.proxy</module>
 	</modules>

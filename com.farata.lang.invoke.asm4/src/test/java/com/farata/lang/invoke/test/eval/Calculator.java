@@ -8,7 +8,7 @@ import com.farata.lang.invoke.test.expression.Constant;
 import com.farata.lang.invoke.test.expression.Division;
 import com.farata.lang.invoke.test.expression.IExpressionNode;
 import com.farata.lang.invoke.test.expression.Multiplication;
-import com.farata.lang.invoke.test.expression.Negation;
+import com.farata.lang.invoke.test.expression.UnaryMinus;
 import com.farata.lang.invoke.test.expression.Subtraction;
 import com.farata.lang.invoke.test.expression.UnaryPlus;
 import com.farata.lang.invoke.test.expression.Variable;
@@ -41,7 +41,7 @@ public class Calculator {
 		return value.doubleValue();
 	}
 
-	public double eval(final Negation e, final Map<String, Double> bindings) {
+	public double eval(final UnaryMinus e, final Map<String, Double> bindings) {
 		return - evaluator.eval(e.operand, bindings);
 	}
 

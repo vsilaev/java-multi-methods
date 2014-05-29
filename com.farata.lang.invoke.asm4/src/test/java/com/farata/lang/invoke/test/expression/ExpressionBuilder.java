@@ -10,8 +10,8 @@ public class ExpressionBuilder {
 		return new Addition(a, b);
 	}
 
-	public static Negation minus(final IExpressionNode e) {
-		return new Negation(e);
+	public static UnaryMinus minus(final IExpressionNode e) {
+		return new UnaryMinus(e);
 	}
 	
 	public static Subtraction minus(final IExpressionNode a, final IExpressionNode b) { 

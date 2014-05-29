@@ -8,7 +8,7 @@ import com.farata.lang.invoke.test.expression.Constant;
 import com.farata.lang.invoke.test.expression.Division;
 import com.farata.lang.invoke.test.expression.IExpressionNode;
 import com.farata.lang.invoke.test.expression.Multiplication;
-import com.farata.lang.invoke.test.expression.Negation;
+import com.farata.lang.invoke.test.expression.UnaryMinus;
 import com.farata.lang.invoke.test.expression.Subtraction;
 import com.farata.lang.invoke.test.expression.UnaryPlus;
 import com.farata.lang.invoke.test.expression.Variable;
@@ -38,7 +38,7 @@ public class StringSerializer {
 		out.append(e.name);
 	}
 
-	public void eval(final Negation e, final StringBuilder out) {
+	public void eval(final UnaryMinus e, final StringBuilder out) {
 		out.append('-').append('(');
 		evaluator.eval(e.operand, out);
 		out.append(')');

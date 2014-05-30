@@ -10,41 +10,43 @@ import com.farata.lang.invoke.test.expression.UnaryOperator;
 import com.farata.lang.invoke.test.expression.Variable;
 
 public class StringSerializer {
-	final private IExpressionNodeSerializer evaluator;
+	final private IExpressionNodeSerializer dispatcher;
 	
 	public StringSerializer() {
-		evaluator = MultiMethods.create(
+		dispatcher = MultiMethods.create(
 			IExpressionNodeSerializer.class, 
 			this,
-			MultiMethods.publicMethodsByName("eval.*")
+			MultiMethods.publicMethodsByName("doSerialize.*")
 		);
 	}
 	
 	public String serialize(final IExpressionNode e) {
 		final StringBuilder out = new StringBuilder();
-		evaluator.eval(e, out);
+		dispatcher.serialize(e, out);
 		return out.toString();
 	}
 	
-	public void eval(final Constant e, final StringBuilder out) {
+	public void doSerialize(final Constant e, final StringBuilder out) {
 		out.append(BigDecimal.valueOf(e.value).setScale(2));
 	}
 
-	public void eval(final Variable e, final StringBuilder out) {
+	public void doSerialize(final Variable e, final StringBuilder out) {
 		out.append(e.name);
 	}
 
-	public void eval(final UnaryOperator e, final StringBuilder out) {
+	// We may handle all UnaryOperator-s uniformly
+	public void doSerialize(final UnaryOperator e, final StringBuilder out) {
 		out.append(e.name).append('(');
-		evaluator.eval(e.operand, out);
+		dispatcher.serialize(e.operand, out);
 		out.append(')');
 	}
 
-	public void eval(final BinaryOperator e, final StringBuilder out) {
+	// We may handle all BinaryOperator-s uniformly
+	public void doSerialize(final BinaryOperator e, final StringBuilder out) {
 		out.append('(');
-		evaluator.eval(e.loperand, out);
+		dispatcher.serialize(e.loperand, out);
 		out.append(' ').append(e.name).append(' ');
-		evaluator.eval(e.roperand, out);
+		dispatcher.serialize(e.roperand, out);
 		out.append(')');
 	}
 

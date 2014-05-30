@@ -1,11 +1,9 @@
 package com.farata.lang.invoke;
 
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.WeakHashMap;
 
+import com.farata.lang.invoke.core.MultiMethodFactoryCache;
 import com.farata.lang.invoke.spi.MultiMethodCompiler;
 import com.farata.lang.invoke.spi.MultiMethodFactory;
 import com.farata.lang.invoke.util.MethodModifier;
@@ -40,42 +38,9 @@ public class MultiMethods {
 	}
 	
 	private static <T, O> MultiMethodFactory<T, O> resolveDispatcherFactory(final Class<T> samInterface, final Class<O> delegateClass, final MultiMethodsCollector methodsCollector) {
-		Map<Class<?>, Map<MultiMethodsCollector, MultiMethodFactory<?, ?>>> bySamInterface;
-		synchronized (CACHED_FACTORIES) {
-			bySamInterface = CACHED_FACTORIES.get(samInterface);
-			if (null == bySamInterface) {
-				bySamInterface = new WeakHashMap<Class<?>, Map<MultiMethodsCollector,MultiMethodFactory<?,?>>>();
-				CACHED_FACTORIES.put(samInterface, bySamInterface);
-			}
-		}
-		
-		Map<MultiMethodsCollector, MultiMethodFactory<?, ?>> byDelegateClass;
-		synchronized (bySamInterface) {
-			byDelegateClass = bySamInterface.get(delegateClass);
-			if (null == byDelegateClass) {
-				byDelegateClass = new HashMap<MultiMethodsCollector, MultiMethodFactory<?,?>>();
-				bySamInterface.put(delegateClass, byDelegateClass);
-			}
-		}
-		
-		synchronized (byDelegateClass) {
-			final MultiMethodFactory<?, ?> factory = byDelegateClass.get(methodsCollector);
-			if (null == factory) {
-				final MultiMethodCompiler compiler = COMPILER;
-				final MultiMethodFactory<T, O> result = compiler.compile(samInterface, delegateClass, methodsCollector);
-				byDelegateClass.put(methodsCollector, result);
-				return result;
-			} else {
-				@SuppressWarnings("unchecked")
-				final MultiMethodFactory<T, O> result = (MultiMethodFactory<T, O>)factory;
-				return result;
-			}
-		}
+		return MultiMethodFactoryCache.resolveFactory(COMPILER, samInterface, delegateClass, methodsCollector);
 	}
 
-	final private static Map<Class<?>, Map<Class<?>, Map<MultiMethodsCollector, MultiMethodFactory<?, ?>>>> CACHED_FACTORIES =
-		new WeakHashMap<Class<?>, Map<Class<?>,Map<MultiMethodsCollector,MultiMethodFactory<?,?>>>>();	
-	
 	final private static MultiMethodCompiler COMPILER;
 	static {
 		MultiMethodCompiler installedCompiler = null;

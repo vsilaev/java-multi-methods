@@ -6,6 +6,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import com.farata.lang.invoke.test.eval.Calculator;
+import com.farata.lang.invoke.test.eval.IExpressionNodeEvaluator;
 import com.farata.lang.invoke.test.eval.StringSerializer;
 import com.farata.lang.invoke.test.expression.IExpressionNode;
 
@@ -31,8 +32,8 @@ public class CalculatorTest {
 		final StringSerializer serializer = new StringSerializer();
 		final String formula = serializer.serialize(exp);
 
-		final Calculator calc = new Calculator();
-		final double result = calc.calculate(exp, bindings);
+		final IExpressionNodeEvaluator calc = new Calculator();
+		final double result = calc.eval(exp, bindings);
 		
 		System.out.println(formula + " = " + result);
 	}

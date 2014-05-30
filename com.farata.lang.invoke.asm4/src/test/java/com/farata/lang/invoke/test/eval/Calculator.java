@@ -13,27 +13,27 @@ import com.farata.lang.invoke.test.expression.Subtraction;
 import com.farata.lang.invoke.test.expression.UnaryPlus;
 import com.farata.lang.invoke.test.expression.Variable;
 
-public class Calculator {
+public class Calculator implements IExpressionNodeEvaluator {
 
-	final private IExpressionNodeEvaluator evaluator;
+	final private IExpressionNodeEvaluator dispatcher;
 	
 	public Calculator() {
-		evaluator = MultiMethods.create(
+		dispatcher = MultiMethods.create(
 			IExpressionNodeEvaluator.class, 
 			this,
-			MultiMethods.publicMethodsByName("eval.*")
+			MultiMethods.publicMethodsByName("doEval.*")
 		);
 	}
 	
-	public double calculate(final IExpressionNode e, final Map<String, Double> bindings) {
-		return evaluator.eval(e, bindings);
+	public double eval(final IExpressionNode e, final Map<String, Double> bindings) {
+		return dispatcher.eval(e, bindings);
 	}
 	
-	public double eval(final Constant e, final Map<String, Double> bindings) {
+	public double doEval(final Constant e, final Map<String, Double> bindings) {
 		return e.value;
 	}
 
-	public double eval(final Variable e, final Map<String, Double> bindings) {
+	public double doEval(final Variable e, final Map<String, Double> bindings) {
 		final Double value = bindings.get(e.name);
 		if (null == value) {
 			throw new RuntimeException("Variable is not bound: " + e.name);
@@ -41,28 +41,28 @@ public class Calculator {
 		return value.doubleValue();
 	}
 
-	public double eval(final UnaryMinus e, final Map<String, Double> bindings) {
-		return - evaluator.eval(e.operand, bindings);
+	public double doEval(final UnaryMinus e, final Map<String, Double> bindings) {
+		return - dispatcher.eval(e.operand, bindings);
 	}
 
-	public double eval(final UnaryPlus e, final Map<String, Double> bindings) {
-		return + evaluator.eval(e.operand, bindings);
+	public double doEval(final UnaryPlus e, final Map<String, Double> bindings) {
+		return + dispatcher.eval(e.operand, bindings);
 	}
 	
-	public double eval(final Addition e, final Map<String, Double> bindings) {
-		return evaluator.eval(e.loperand, bindings) + evaluator.eval(e.roperand, bindings);
+	public double doEval(final Addition e, final Map<String, Double> bindings) {
+		return dispatcher.eval(e.loperand, bindings) + dispatcher.eval(e.roperand, bindings);
 	}
 	
-	public double eval(final Subtraction e, final Map<String, Double> bindings) {
-		return evaluator.eval(e.loperand, bindings) - evaluator.eval(e.roperand, bindings);
+	public double doEval(final Subtraction e, final Map<String, Double> bindings) {
+		return dispatcher.eval(e.loperand, bindings) - dispatcher.eval(e.roperand, bindings);
 	}
 	
-	public double eval(final Division e, final Map<String, Double> bindings) {
-		return evaluator.eval(e.loperand, bindings) / evaluator.eval(e.roperand, bindings);
+	public double doEval(final Division e, final Map<String, Double> bindings) {
+		return dispatcher.eval(e.loperand, bindings) / dispatcher.eval(e.roperand, bindings);
 	}
 	
-	public double eval(final Multiplication e, final Map<String, Double> bindings) {
-		return evaluator.eval(e.loperand, bindings) * evaluator.eval(e.roperand, bindings);
+	public double doEval(final Multiplication e, final Map<String, Double> bindings) {
+		return dispatcher.eval(e.loperand, bindings) * dispatcher.eval(e.roperand, bindings);
 	}
 
 }

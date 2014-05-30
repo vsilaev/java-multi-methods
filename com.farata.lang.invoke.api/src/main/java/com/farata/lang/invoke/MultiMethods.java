@@ -38,9 +38,10 @@ public class MultiMethods {
 	}
 	
 	private static <T, O> MultiMethodFactory<T, O> resolveDispatcherFactory(final Class<T> samInterface, final Class<O> delegateClass, final MultiMethodsCollector methodsCollector) {
-		return MultiMethodFactoryCache.resolveFactory(COMPILER, samInterface, delegateClass, methodsCollector);
+		return MULTI_METHOD_FACTORY_CACHE.resolveFactory(COMPILER, samInterface, delegateClass, methodsCollector);
 	}
 
+	final private static MultiMethodFactoryCache MULTI_METHOD_FACTORY_CACHE = new MultiMethodFactoryCache();
 	final private static MultiMethodCompiler COMPILER;
 	static {
 		MultiMethodCompiler installedCompiler = null;

@@ -1,24 +1,17 @@
 package com.farata.lang.invoke.core;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import com.farata.lang.invoke.MultiMethodsCollector;
 import com.farata.lang.invoke.spi.MultiMethodCompiler;
 import com.farata.lang.invoke.spi.MultiMethodFactory;
 
 public class MultiMethodFactoryCache {
 	
-	public static <T, O> MultiMethodFactory<T, O> resolveFactory(final MultiMethodCompiler compiler, final Class<T> samInterface, final Class<O> delegateClass, final MultiMethodsCollector methodsCollector) {
-		final CachedEntryBySamInterface byInterface = CACHE_SUPPORT.getOrCreate(ROOT.value, samInterface, ROOT.lock, CREATE_ENTRY_PER_SAM_INTERFACE_CACHE);
-		final CachedEntryByDelegateClass byDelegate = CACHE_SUPPORT.getOrCreate(byInterface.value, delegateClass, byInterface.lock, CREATE_ENTRY_PER_DELEGATE_CLASS_CACHE);
-		final MultiMethodFactory<?, ?> factory = CACHE_SUPPORT.getOrCreate(
-			byDelegate.value, methodsCollector, byDelegate.lock, 
+	public <T, O> MultiMethodFactory<T, O> resolveFactory(final MultiMethodCompiler compiler, final Class<T> samInterface, final Class<O> delegateClass, final MultiMethodsCollector methodsCollector) {
+		final MemoizationBySamInterface byInterface = root.get(samInterface, createEntryPerSamInterfaceCache);
+		final MemoizationByDelegateClass byDelegate = byInterface.get(delegateClass, createEntryPerDelegateClassCache);
+		final MultiMethodFactory<?, ?> factory = byDelegate.get(methodsCollector,  
 			new CompileMultiMethodFactory() {
-				public MultiMethodFactory<?, ?> create(final MultiMethodsCollector ignore) {
+				public MultiMethodFactory<?, ?> create() {
 					return compiler.compile(samInterface, delegateClass, methodsCollector);
 				}
 			}
@@ -29,45 +22,28 @@ public class MultiMethodFactoryCache {
 		return result;
 	}
 
-	final private static RootEntry ROOT = new RootEntry();
-	final private static RWLockCacheSupport CACHE_SUPPORT = new RWLockCacheSupport();
+	final protected RootEntry root = new RootEntry();
 
-	final static CacheSupport.ValueFactory<Class<?>, CachedEntryBySamInterface> CREATE_ENTRY_PER_SAM_INTERFACE_CACHE = 
-		new CacheSupport.ValueFactory<Class<?>, CachedEntryBySamInterface>() {
-			@Override
-			public CachedEntryBySamInterface create(final Class<?> key) {
-				return new CachedEntryBySamInterface();
+	final protected Memoization.ValueProducer<MemoizationBySamInterface> createEntryPerSamInterfaceCache = 
+		new Memoization.ValueProducer<MemoizationBySamInterface>() {
+			public MemoizationBySamInterface create() {
+				return new MemoizationBySamInterface();
+			}
+		};
+
+	final protected Memoization.ValueProducer<MemoizationByDelegateClass> createEntryPerDelegateClassCache = 
+		new Memoization.ValueProducer<MemoizationByDelegateClass>() {
+			public MemoizationByDelegateClass create() {
+				return new MemoizationByDelegateClass();
 			}
 		};
 
 	
-	final static CacheSupport.ValueFactory<Class<?>, CachedEntryByDelegateClass> CREATE_ENTRY_PER_DELEGATE_CLASS_CACHE = 
-		new CacheSupport.ValueFactory<Class<?>, CachedEntryByDelegateClass>() {
-			@Override
-			public CachedEntryByDelegateClass create(final Class<?> key) {
-				return new CachedEntryByDelegateClass();
-			}
-		};
-
+	protected static class MemoizationByDelegateClass extends HardReferenceMemoization<MultiMethodsCollector, MultiMethodFactory<?,?>> {}
 	
-	static class CachedEntryByDelegateClass extends GuardedValue<ReadWriteLock, Map<MultiMethodsCollector,MultiMethodFactory<?,?>>> {
-		public CachedEntryByDelegateClass() {
-			super(new ReentrantReadWriteLock(), new HashMap<MultiMethodsCollector, MultiMethodFactory<?,?>>());
-		}
-	}
+	protected static class MemoizationBySamInterface extends WeakReferenceMemoization<Class<?>, MemoizationByDelegateClass> {}
 	
-	static class CachedEntryBySamInterface extends GuardedValue<ReadWriteLock, Map<Class<?>, CachedEntryByDelegateClass>> {
-		public CachedEntryBySamInterface() {
-			super(new ReentrantReadWriteLock(), new WeakHashMap<Class<?>, CachedEntryByDelegateClass>());
-		}
-	}
+	protected static class RootEntry extends WeakReferenceMemoization<Class<?>, MemoizationBySamInterface> {}
 	
-	static class RootEntry extends GuardedValue<ReadWriteLock, Map<Class<?>, CachedEntryBySamInterface>> {
-		public RootEntry() {
-			super(new ReentrantReadWriteLock(), new WeakHashMap<Class<?>, CachedEntryBySamInterface>());
-		}
-		
-	}
-	
-	abstract static class CompileMultiMethodFactory extends CacheSupport.ValueFactory<MultiMethodsCollector, MultiMethodFactory<?, ?>> {}
+	abstract static class CompileMultiMethodFactory implements Memoization.ValueProducer<MultiMethodFactory<?, ?>> {}
 }

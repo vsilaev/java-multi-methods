@@ -44,6 +44,23 @@ class WeakReferenceMemoization<K, V> implements Memoization<K, V> {
 
 		return (entry != null) ? entry.value : null;
 	}
+	
+	public V remove(final K key) {
+		final Reference<K> lookupKeyRef = new KeyReference<K>(key);
+		final Object mutex = getOrCreateMutex(lookupKeyRef);
+		synchronized (mutex) {
+			try {
+				final Entry<K, V> entry = valueMap.remove(lookupKeyRef);
+				if (null != entry) {
+					return entry.value;
+				} else {
+					return null;
+				}
+			} finally {
+				producerMutexes.remove(lookupKeyRef, mutex);
+			}
+		}		
+	}
 
 	protected Object getOrCreateMutex(final Reference<K> keyRef) {
 		final Object createdMutex = new byte[0];
@@ -56,35 +73,32 @@ class WeakReferenceMemoization<K, V> implements Memoization<K, V> {
 			return createdMutex;
 		}
 	}
-
+	
 	private void expungeStaleEntries() {
 		for (Reference<? extends K> ref; (ref = queue.poll()) != null;) {
 			@SuppressWarnings("unchecked")
 			final Reference<K> keyRef = (Reference<K>) ref;
-			final Object mutex = getOrCreateMutex(keyRef);
-			synchronized (mutex) {
-				final Entry<K, V> entry = valueMap.get(keyRef);
-				if (null != entry && entry.keyReference == keyRef) {
-					// Remove only if key is still equals by reference
-					valueMap.remove(keyRef);
-				}
-				producerMutexes.remove(keyRef, mutex);
-			}
+			// keyRef now is equal only to itself while referent is cleared already
+			// so it's safe to remove it without ceremony (like getOrCreateMutex(keyRef) creation
+			// or double checks for entry.keyReference == keyRef)  
+			valueMap.remove(keyRef);
 		}
 	}
 
 	static class KeyReference<K> extends WeakReference<K> {
+		final private int referentHashCode;
+		
 		KeyReference(final K key) {
-			super(key);
+			this(key, null);
 		}
 
 		KeyReference(final K key, final ReferenceQueue<K> queue) {
 			super(key, queue);
+			referentHashCode = key == null ? 0 : key.hashCode();
 		}
 
 		public int hashCode() {
-			final K referent = get();
-			return null == referent ? 0 : referent.hashCode();
+			return referentHashCode;
 		}
 
 		public boolean equals(final Object other) {

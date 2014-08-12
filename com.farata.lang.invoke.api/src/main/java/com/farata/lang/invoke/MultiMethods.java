@@ -24,6 +24,10 @@ public class MultiMethods {
 		final MultiMethodFactory<T, O> factory = resolveDispatcherFactory(samInterface, delegateClass, methodsCollector);
 		return factory.create(delegate);
 	}	
+
+	public static MultiMethodsCollector methodsByName(final String methodName) {
+		return new ReflectiveMultimethodsCollector(methodName, EnumSet.allOf(MethodModifier.class));
+	}
 	
 	public static MultiMethodsCollector publicMethodsByName(final String methodName) {
 		return new ReflectiveMultimethodsCollector(methodName);

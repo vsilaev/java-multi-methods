@@ -21,7 +21,7 @@ public class Calculator implements IExpressionNodeEvaluator {
 		dispatcher = MultiMethods.create(
 			IExpressionNodeEvaluator.class, 
 			this,
-			MultiMethods.publicMethodsByName("doEval.*")
+			MultiMethods.methodsByName("doEval.*")
 		);
 	}
 	
@@ -29,11 +29,11 @@ public class Calculator implements IExpressionNodeEvaluator {
 		return dispatcher.eval(e, bindings);
 	}
 	
-	public double doEval(final Constant e, final Map<String, Double> bindings) {
+	protected double doEval(final Constant e, final Map<String, Double> bindings) {
 		return e.value;
 	}
 
-	public double doEval(final Variable e, final Map<String, Double> bindings) {
+	protected double doEval(final Variable e, final Map<String, Double> bindings) {
 		final Double value = bindings.get(e.name);
 		if (null == value) {
 			throw new RuntimeException("Variable is not bound: " + e.name);
@@ -41,27 +41,27 @@ public class Calculator implements IExpressionNodeEvaluator {
 		return value.doubleValue();
 	}
 
-	public double doEval(final UnaryMinus e, final Map<String, Double> bindings) {
+	protected double doEval(final UnaryMinus e, final Map<String, Double> bindings) {
 		return - dispatcher.eval(e.operand, bindings);
 	}
 
-	public double doEval(final UnaryPlus e, final Map<String, Double> bindings) {
+	protected double doEval(final UnaryPlus e, final Map<String, Double> bindings) {
 		return + dispatcher.eval(e.operand, bindings);
 	}
 	
-	public double doEval(final Addition e, final Map<String, Double> bindings) {
+	protected double doEval(final Addition e, final Map<String, Double> bindings) {
 		return dispatcher.eval(e.loperand, bindings) + dispatcher.eval(e.roperand, bindings);
 	}
 	
-	public double doEval(final Subtraction e, final Map<String, Double> bindings) {
+	protected double doEval(final Subtraction e, final Map<String, Double> bindings) {
 		return dispatcher.eval(e.loperand, bindings) - dispatcher.eval(e.roperand, bindings);
 	}
 	
-	public double doEval(final Division e, final Map<String, Double> bindings) {
+	protected double doEval(final Division e, final Map<String, Double> bindings) {
 		return dispatcher.eval(e.loperand, bindings) / dispatcher.eval(e.roperand, bindings);
 	}
 	
-	public double doEval(final Multiplication e, final Map<String, Double> bindings) {
+	protected double doEval(final Multiplication e, final Map<String, Double> bindings) {
 		return dispatcher.eval(e.loperand, bindings) * dispatcher.eval(e.roperand, bindings);
 	}
 

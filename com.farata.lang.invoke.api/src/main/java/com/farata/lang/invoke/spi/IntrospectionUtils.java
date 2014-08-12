@@ -42,12 +42,16 @@ public class IntrospectionUtils {
 			return 0;
 		}
 		
+		if (from.isArray() && to.isArray()) {
+			return inheritanceDistance(from.getComponentType(), to.getComponentType());
+		}
+		
 		if (Modifier.isFinal(to.getModifiers())) {
 			// No exact equality and "to" can't be extended
 			return -1;
 		}
 		
-		final Class<?> fromSuper = from.getSuperclass();
+		final Class<?> fromSuper = from.isInterface() ? Object.class : from.getSuperclass();
 		int result = inheritanceDistance(fromSuper, to);
 		
 		if (result >= 0) {

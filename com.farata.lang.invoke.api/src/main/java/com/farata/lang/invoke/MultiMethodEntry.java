@@ -21,4 +21,9 @@ public class MultiMethodEntry {
 		}
 		
 	}; 
+	
+	@Override
+	public String toString() {
+		return new StringBuilder(method.toGenericString()).append(", D=").append(distance).toString();
+	}
 }

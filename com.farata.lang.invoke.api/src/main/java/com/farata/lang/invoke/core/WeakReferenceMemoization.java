@@ -8,41 +8,39 @@ import java.util.concurrent.ConcurrentMap;
 
 class WeakReferenceMemoization<K, V> implements Memoization<K, V> {
 	final private ConcurrentMap<Reference<K>, Object> producerMutexes = new ConcurrentHashMap<Reference<K>, Object>();
-	final private ConcurrentMap<Reference<K>, Entry<K, V>> valueMap = new ConcurrentHashMap<Reference<K>, Entry<K, V>>();
+	final private ConcurrentMap<Reference<K>, V> valueMap = new ConcurrentHashMap<Reference<K>, V>();
 	final private ReferenceQueue<K> queue = new ReferenceQueue<K>();
 
 	public V get(final K key, final ValueProducer<V> producer) {
 		expungeStaleEntries();
 
 		final Reference<K> lookupKeyRef = new KeyReference<K>(key);
-		Entry<K, V> entry;
+		V value;
 
 		// Try to get a cached value.
-		entry = valueMap.get(lookupKeyRef);
+		value = valueMap.get(lookupKeyRef);
 
-		if (entry != null) {
+		if (value != null) {
 			// A cached value was found.
-			return entry.value;
+			return value;
 		}
 
 		final Object mutex = getOrCreateMutex(lookupKeyRef);
 		synchronized (mutex) {
 			try {
 				// Double-check after getting mutex
-				entry = valueMap.get(lookupKeyRef);
-				if (entry == null) {
-					final V value = producer.create();
-					final Reference<K> actualKeyRef = new KeyReference<K>(key,
-							queue);
-					entry = new Entry<K, V>(actualKeyRef, value);
-					valueMap.put(actualKeyRef, entry);
+				value = valueMap.get(lookupKeyRef);
+				if (value == null) {
+					value = producer.create();
+					final Reference<K> actualKeyRef = new KeyReference<K>(key, queue);
+					valueMap.put(actualKeyRef, value);
 				}
 			} finally {
 				producerMutexes.remove(lookupKeyRef, mutex);
 			}
 		}
 
-		return (entry != null) ? entry.value : null;
+		return value;
 	}
 	
 	public V remove(final K key) {
@@ -50,12 +48,8 @@ class WeakReferenceMemoization<K, V> implements Memoization<K, V> {
 		final Object mutex = getOrCreateMutex(lookupKeyRef);
 		synchronized (mutex) {
 			try {
-				final Entry<K, V> entry = valueMap.remove(lookupKeyRef);
-				if (null != entry) {
-					return entry.value;
-				} else {
-					return null;
-				}
+				final V value = valueMap.remove(lookupKeyRef);
+				return value;
 			} finally {
 				producerMutexes.remove(lookupKeyRef, mutex);
 			}
@@ -79,8 +73,7 @@ class WeakReferenceMemoization<K, V> implements Memoization<K, V> {
 			@SuppressWarnings("unchecked")
 			final Reference<K> keyRef = (Reference<K>) ref;
 			// keyRef now is equal only to itself while referent is cleared already
-			// so it's safe to remove it without ceremony (like getOrCreateMutex(keyRef) creation
-			// or double checks for entry.keyReference == keyRef)  
+			// so it's safe to remove it without ceremony (like getOrCreateMutex(keyRef) usage)
 			valueMap.remove(keyRef);
 		}
 	}
@@ -112,13 +105,4 @@ class WeakReferenceMemoization<K, V> implements Memoization<K, V> {
 		}
 	}
 
-	static class Entry<K, V> {
-		final Reference<K> keyReference;
-		final V value;
-
-		Entry(final Reference<K> keyReference, final V value) {
-			this.keyReference = keyReference;
-			this.value = value;
-		}
-	}
 }

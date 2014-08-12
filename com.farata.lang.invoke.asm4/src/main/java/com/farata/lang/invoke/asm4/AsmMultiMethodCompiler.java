@@ -17,7 +17,7 @@ public class AsmMultiMethodCompiler extends AbstractMultiMethodCompiler {
 		try {
 			@SuppressWarnings("unchecked")
 			final Class<T> targetClass = (Class<T>)DEFINE_CLASS.invoke(classLoader, null, classDef, 0, classDef.length);
-			final Constructor<T> dispatcherConstructor = targetClass.getConstructor(delegateClass);
+			final Constructor<T> dispatcherConstructor = targetClass.getConstructor(delegateClass, Object.class);
 			dispatcherConstructor.setAccessible(true);
 			return new AsmMultiMethodFactory<T, O>(dispatcherConstructor);
 		} catch (final IllegalAccessException ex) {

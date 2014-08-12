@@ -13,9 +13,14 @@ public class MultiMethodInvocationHandler implements InvocationHandler {
 	final private Object delegate;
 	final private Collection<Method> methods;
 	
-	public MultiMethodInvocationHandler(final Object delegate, final Collection<Method> methods) {
+	@SuppressWarnings("unused")
+	final private Object factoryReference;
+	
+	public MultiMethodInvocationHandler(final Object delegate, final Collection<Method> methods, final Object factoryReference) {
 		this.delegate = delegate;
 		this.methods = methods;
+		
+		this.factoryReference = factoryReference;
 	}
 
 	public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {

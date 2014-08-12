@@ -64,7 +64,7 @@ public class WeakReferenceMemoizationTest {
 		try {
 			doneSignal.await();
 			final HashSet<Object> out = new HashSet<Object>(Arrays.asList(result));
-			Assert.assertTrue("Single object created", out.size() == 2);
+			Assert.assertTrue("A pair of objects is created", out.size() == 2);
 			System.out.println(out);
 		} catch (InterruptedException e) {
 			Assert.fail("Interrupted!");

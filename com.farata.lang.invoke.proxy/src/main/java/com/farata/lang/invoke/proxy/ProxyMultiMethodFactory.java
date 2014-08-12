@@ -19,7 +19,7 @@ class ProxyMultiMethodFactory<T, O> implements MultiMethodFactory<T, O> {
 
 	public T create(final O delegate) {
 		try {
-			return constructor.newInstance(new MultiMethodInvocationHandler(delegate, methods));
+			return constructor.newInstance(new MultiMethodInvocationHandler(delegate, methods, this));
 		} catch (final InstantiationException ex) {
 			throw new RuntimeException(ex);
 		} catch (final IllegalAccessException ex) {

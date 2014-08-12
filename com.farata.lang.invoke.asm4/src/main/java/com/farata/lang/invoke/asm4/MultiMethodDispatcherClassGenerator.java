@@ -43,16 +43,23 @@ public class MultiMethodDispatcherClassGenerator {
 		final FieldVisitor delegateField = cw.visitField(ACC_PRIVATE + ACC_FINAL, DELEGATE_FIELD_NAME, delegateType.getDescriptor(), null, null);
 		delegateField.visitEnd();
 		
+		// FactoryReference field
+		final FieldVisitor factoryReferenceField = cw.visitField(ACC_PRIVATE + ACC_FINAL, FACTORY_REFERENCE_FIELD_NAME, OBJECT_TYPE.getDescriptor(), null, null);
+		factoryReferenceField.visitEnd();
+		
 		// Constructor
-		final MethodVisitor constructorMethod = cw.visitMethod(ACC_PUBLIC, "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{Type.getType(delegateClass)}), null, null);
+		final MethodVisitor constructorMethod = cw.visitMethod(ACC_PUBLIC, "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{delegateType, OBJECT_TYPE}), null, null);
 		constructorMethod.visitCode();
 		constructorMethod.visitVarInsn(ALOAD, 0);
 		constructorMethod.visitMethodInsn(INVOKESPECIAL, OBJECT_CLASS_NAME, "<init>", "()V");
 		constructorMethod.visitVarInsn(ALOAD, 0);
 		constructorMethod.visitVarInsn(ALOAD, 1);
 		constructorMethod.visitFieldInsn(PUTFIELD, implementationClassName, DELEGATE_FIELD_NAME, delegateType.getDescriptor());
+		constructorMethod.visitVarInsn(ALOAD, 0);
+		constructorMethod.visitVarInsn(ALOAD, 2);
+		constructorMethod.visitFieldInsn(PUTFIELD, implementationClassName, FACTORY_REFERENCE_FIELD_NAME, OBJECT_TYPE.getDescriptor());
 		constructorMethod.visitInsn(RETURN);
-		constructorMethod.visitMaxs(2, 2);
+		constructorMethod.visitMaxs(2, 3);
 		constructorMethod.visitEnd();
 				
 		generateDispatcherMethod(cw, implementationClassName, delegateClass, samInterfaceMethod, implementationMethods);
@@ -360,6 +367,7 @@ public class MultiMethodDispatcherClassGenerator {
 		}
 	}
 
+	final private static Type OBJECT_TYPE = Type.getType(Object.class);
 	final private static String OBJECT_CLASS_NAME = Type.getInternalName(Object.class);
 	final private static String STRING_BUILDER_CLASS_NAME = Type.getInternalName(StringBuilder.class);
 	final private static String FIELD_ARRAY_CLASS_DESCRIPTOR = Type.getDescriptor(String[].class);
@@ -367,6 +375,7 @@ public class MultiMethodDispatcherClassGenerator {
 	final private static String INTROSPECTION_UTILS_CLASS_NAME = Type.getInternalName(IntrospectionUtils.class);
 	
 	final private static String DELEGATE_FIELD_NAME = "delegate";
+	final private static String FACTORY_REFERENCE_FIELD_NAME = "factoryReference";
 	final private static String INDEXER_METHOD_NAME = "__$$dispatch_index$$__";
 	final private static String IMPL_METHOD_NAMES_FIELD_NAME = "__$$methods$$__";
 	final private static String METHOD_AMBIGUITY_ERROR_METHOD_NAME = "__$$method_ambiguity_error$$__";

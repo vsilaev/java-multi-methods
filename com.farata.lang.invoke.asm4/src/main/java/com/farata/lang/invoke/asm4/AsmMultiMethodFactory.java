@@ -15,7 +15,7 @@ class AsmMultiMethodFactory<T, O> implements MultiMethodFactory<T, O> {
 	
 	public T create(final O delegate) {
 		try {
-			return constructor.newInstance(delegate);
+			return constructor.newInstance(delegate, this);
 		} catch (InstantiationException ex) {
 			throw new RuntimeException(ex);
 		} catch (IllegalAccessException ex) {

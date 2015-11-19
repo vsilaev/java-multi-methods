@@ -2,28 +2,35 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.farata.lang.invoke</groupId>
-	<artifactId>com.farata.lang.invoke.parent</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
+	<parent>
+		<groupId>com.farata.lang.invoke</groupId>
+		<artifactId>com.farata.lang.invoke.parent</artifactId>
+		<version>1.0-SNAPSHOT</version>
+		<relativePath>../</relativePath>
+	</parent>
 
-	<name>Java Multi-Methods</name>
+	<artifactId>com.farata.lang.invoke.asm5</artifactId>
+	<packaging>jar</packaging>
+
+	<name>Java Multi-Methods / ObjectWeb ASM 5.x Compiler</name>
 	<url>http://maven.apache.org</url>
-
-	<modules>
-		<module>com.farata.lang.invoke.api</module>
-		<module>com.farata.lang.invoke.asm3</module>
-		<module>com.farata.lang.invoke.asm4</module>
-		<module>com.farata.lang.invoke.asm5</module>
-		<module>com.farata.lang.invoke.proxy</module>
-	</modules>
-
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.farata.lang.invoke</groupId>
+			<artifactId>com.farata.lang.invoke.api</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm</artifactId>
+			<version>5.0.4</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
